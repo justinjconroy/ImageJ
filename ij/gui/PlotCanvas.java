@@ -18,6 +18,7 @@ public class PlotCanvas extends ImageCanvas {
 	int xScrolled, yScrolled;	//distance scrolled so far
 	int oldWidth, oldHeight;
 	int rangeArrowIndexWhenPressed = -1;
+	boolean resizing = false;
 
 	/** Creates a new PlotCanvas */
 	public PlotCanvas(ImagePlus imp) {
@@ -143,6 +144,10 @@ public class PlotCanvas extends ImageCanvas {
 	 *	a new window, this is ignored if no window exists or the window has not been activated yet.
      */
 	void resizeCanvas(int width, int height) {
+		if (resizing){
+			return; /*exit if a resize operation is already happening*/
+		}
+
 		if (plot == null || plot.isFrozen()) {
 			super.resizeCanvas(width, height);
 			return;
@@ -154,14 +159,16 @@ public class PlotCanvas extends ImageCanvas {
 		if (win==null || !(win instanceof PlotWindow)) return;
 		if (!win.isVisible()) return;
 		if (!((PlotWindow)win).wasActivated) return;				// window layout not finished yet?
+		resizing = true;
 		Dimension minSize = plot.getMinimumSize();
 		int plotWidth  =  width < minSize.width	 ? minSize.width  : width;
 		int plotHeight = height < minSize.height ? minSize.height : height;
-		plot.setSize(plotWidth, plotHeight);
 		setSize(width, height);
+		plot.setSize(plotWidth, plotHeight);
 		oldWidth = width;
 		oldHeight = height;
 		((PlotWindow)win).canvasResized();
+		resizing = false;
 	}
 
 	/** The image of a PlotCanvas is always shown at 100% magnification unless the plot is frozen */
